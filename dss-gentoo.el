@@ -33,12 +33,4 @@
   (interactive)
   (dss/remote-term "root@localhost" "emerge -avuDN system\n"))
 
-(defun dss/gentoo-fix-system-time ()
-  (interactive)
-  (dss/remote-term
-   "root@localhost"
-   "date; date -s \"`ssh tavis@tavismac date`\"; hwclock -w; date;\nsleep 3 && exit\n"
-                                        ;"date; /etc/init.d/ntpd stop; ntpdate tavismac; /etc/init.d/ntpd start;  date\nsleep 3 && exit\n"
-   ))
-
 (provide 'dss-gentoo)
