@@ -111,6 +111,8 @@
         (:name lineker :type http
                :url "http://www.helsinki.fi/~sjpaavol/programs/lineker.el")
         (:name js2-mode :type git :url "https://github.com/mooz/js2-mode")
+        (:name flymake-coffee :type git :url "git://github.com/purcell/flymake-coffee.git")
+        (:name flymake-node-jshint :type git :url "git://github.com/jegbjerg/flymake-node-jshint.git")
         (:name elein :type git :url "https://github.com/remvee/elein.git")
         (:name pg :type http :url "http://www.online-marketwatch.com/pgel/pg.el")
         (:name stompem :type git :url "https://github.com/jwhitlark/Stompem.git")
@@ -118,7 +120,11 @@
         (:name elnode :type git :url "https://github.com/tavisrudd/elnode.git")
         (:name gh :type git :url "https://github.com/sigma/gh.el.git")
         (:name pcache :type git :url "https://github.com/sigma/pcache.git")
+        (:name etags-select :type emacswiki)
         (:name auto-complete-etags :type git :url "https://github.com/whitypig/auto-complete-etags.git")
+
+        (:name buster-mode :type git :url "git://gitorious.org/buster/buster-mode.git")
+        (:name mark-multiple :type git :url "git://github.com/magnars/mark-multiple.el.git")
         (:name haskell-mode
                :description "A Haskell editing mode"
                :type git
@@ -130,6 +136,7 @@
 
 (setq dss-el-get-packages
       '(package
+                                        ;cedet
         smex command-frequency
         session desktop-recover
 
@@ -138,7 +145,9 @@
         color-theme
         rainbow-mode
         isearch+
+        ace-jump-mode
         grep-a-lot
+        mark-multiple
         undo-tree goto-last-change
         filladapt
         show-wspace lineker
@@ -157,15 +166,20 @@
 
         paredit rainbow-delimiters autopair
 
+        etags-select
         ac-slime
         auto-complete-etags
+        auto-complete-extension
 
         clojure-mode elein
         coffee-mode
+        flymake-coffee
         python-mode pymacs ipython virtualenv pylookup
         haskell-mode
         lua-mode
         js2-mode
+        flymake-node-jshint
+        buster-mode
         yaml-mode
 
 
