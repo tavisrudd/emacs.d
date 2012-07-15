@@ -444,13 +444,20 @@ nil otherwise."
 (defun dss/org-vc-log-edit-hook ()
   (interactive)
   (beginning-of-buffer)
-  (insert (dss/org-clock-heading))
-  (insert "\n\n")
-  (dss/org-insert-link-to-clock)
-  (beginning-of-buffer))
+  (if (and (dss/org-clock-is-active)
+           (not (save-excursion
+                  (re-search-forward (save-window-excursion
+                                       (org-clock-goto)
+                                       (org-id-get-create)) nil t))))
+      (progn
+        (insert (dss/org-clock-heading))
+        (insert "\n\n")
+        (dss/org-insert-link-to-clock)
+        (beginning-of-buffer))))
 
 (add-hook 'log-edit-mode-hook 'dss/org-vc-log-edit-hook)
-;;; this is automatically included in 'dvc-log-edit-mode-hook
+(add-hook 'dvc-log-edit-mode-hook 'dss/org-vc-log-edit-hook)
+
 
 (defun dss/org-clock-in-hook ()
   (dss/org-set-timer-message "take a break")
