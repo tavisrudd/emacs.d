@@ -493,7 +493,7 @@ nil otherwise."
 (add-hook 'org-clock-out-hook 'dss/org-clock-out-hook)
 (setq org-timer-done-hook 'dss/org-timer-done-hook)
 
-(setq org-timer-default-timer 25)
+(setq org-timer-default-timer 30)
 
 
 (defun dss/org-set-default-timer (time)
