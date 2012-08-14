@@ -3,6 +3,7 @@
 (require 'comint)
 (require 'org)
 (require 'fm)
+(require 'sunrise-commander)
 (require 'dss-buffer-and-window-handling)
 (require 'dss-command-history-and-freqs)
 (require 'dss-lisps)
@@ -23,8 +24,9 @@
 (define-key global-map (kbd "M-X") 'smex-update-and-run)
 (define-key global-map (kbd "M-x") 'smex)
 (define-key global-map (kbd "M-s") 'ido-goto-symbol)
-(define-key global-map (kbd "M-]") 'dss/goto-match-paren)
-
+(define-key global-map (kbd "M-]") 'dss/multi-term)
+(define-key global-map (kbd "M-,") 'dss/magit-or-monky)
+(define-key global-map (kbd "C-M-]") 'sunrise-cd)
 (define-key global-map (kbd "C-M-l") 'dss/sync-point-all-windows)
 
 (defun dss/hippie-expand ()
@@ -264,8 +266,9 @@
 (define-key f4-map "s" 'dss/eval-region-or-last-sexp)
 (define-key f4-map "d" 'dss/eval-defun)
 
-(define-key f4-map "x" 'magit-status)
-(define-key f4-map "v" 'dvc-status)
+(define-key f4-map "x" 'dss/magit-or-monky)
+(define-key f4-map "v" 'dss/magit-or-monky)
+(define-key f4-map "q" 'monky-queue)
 
 (define-key f4-map "3" 'dss/out-sexp)
 (define-key f4-map "8" 'dss/out-one-sexp)
@@ -282,8 +285,11 @@
 (define-key f4-map "m" 'mark-sexp)
 
 (define-key f4-map "'" (kbd "\""))
-
+(define-key f4-map "," 'sunrise-cd)
 ;; (define-key f4-map "c" 'k2-copy-whole-sexp)
+
+(define-key sr-mode-map ","  'dss/multi-term)
+(define-key sr-mode-map "V"  'dss/magit-or-monky)
 
 ;;(define-keymap f4-map "n" 'dss/goto-match-paren)
 (define-key f4-map ";" 'goto-last-change)
