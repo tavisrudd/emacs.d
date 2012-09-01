@@ -2,9 +2,13 @@
 (defun dss/lint-ignore ()
   (interactive)
   (cond ((eq major-mode 'js2-mode)
-         (dss/jslint-ignore))
+         (dss/flymake-ignore))
         ((eq major-mode 'python-mode)
-         (call-interactively 'dss/pylint-silence))))
+         (call-interactively 'dss/pylint-silence))
+        (t
+         (call-interactively 'dss/flymake-ignore))))
+
+(define-key global-map (kbd "M-?") 'dss/lint-ignore)
 
 (defun dss/flymake-msgid-at-point ()
   (interactive)
