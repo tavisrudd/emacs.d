@@ -14,3 +14,4 @@
 ^custom.el$
 ^url/.*$
 ^vendor/slime-compile-presave\.el$
+^pymacs\.error$
