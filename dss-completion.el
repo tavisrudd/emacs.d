@@ -31,14 +31,16 @@
   ;ido-confirm-unique-completion t ; wait for RET, even with unique completion
   ido-save-directory-list-file (concat dss-ephemeral-dir "ido.last"))
 
+(defvar dss-minibuffer-truncate-lines t)
 (defun dss/minibuffer-setup-hook ()
-  ;; interactive the future I'll change this so it looks to see if
+  ;; in the future I'll change this so it looks to see if
   ;; linum-mode is active in any of this frame's windows. if the mini
   ;; buffer lines are not truncated, and linum-mode is active the line
   ;; numbers interactive the margin flicker annoyingly.
   ;; http://stackoverflow.com/questions/1775898/emacs-disable-line-truncation-in-minibuffer-only
 
-  (setq truncate-lines t))
+  (when dss-minibuffer-truncate-lines
+    (setq truncate-lines t)))
 
 (add-hook 'minibuffer-setup-hook 'dss/minibuffer-setup-hook)
 
@@ -74,6 +76,7 @@ advice like this:
                                nil require-match initial-input hist def))
         ad-do-it))) " ")
 
+;; (setq ido-enable-replace-completing-read t)
 ;; (defadvice where-is
 ;;   (around where-is-completing-read-only activate)
 ;;   (let (ido-enable-replace-completing-read) ad-do-it))
@@ -83,6 +86,12 @@ advice like this:
   (interactive)
   (let (ido-enable-replace-completing-read)
      (call-interactively 'where-is)))
+
+(defun dss/execute-extended-command ()
+  "wrapper around execute-extended-command that doesn't use ido for completion"
+  (interactive)
+  (let (ido-enable-replace-completing-read)
+    (call-interactively 'execute-extended-command)))
 
 (defun dss/load-library ()
   "wrapper around load-library that doesn't use ido for completion"
