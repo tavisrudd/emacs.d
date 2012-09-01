@@ -1,6 +1,8 @@
 (require 'ibuffer)
 (defalias 'list-buffers 'ibuffer)
-
+(defun dss/list-buffers-int ()
+  (interactive)
+  (display-buffer (list-buffers-noselect nil)))
 (require 'ibuffer-vc)
 (setq ibuffer-formats
       '(
@@ -117,31 +119,161 @@
   (interactive)
   (let ((buffer (or buffer (current-buffer)))
         (pnt (or pnt (point))))
-    (mapc '(lambda (f)
-             (mapc '(lambda (w)
-                      (if (eq (window-buffer w) buffer)
-                          (set-window-point w pnt)))
-                   (window-list f)))
-          (frame-list))))
+    (dolist (f (frame-list))
+      (dolist (w (window-list f))
+        (if (eq (window-buffer w) buffer)
+            (set-window-point w pnt))))))
+
+(defun dss/bury-buffer-other-windows (&optional buffer pnt)
+  (interactive)
+  (let ((buffer (or buffer (current-buffer))))
+    (save-window-excursion
+      (dolist (f (frame-list))
+        (dolist (w (window-list f))
+          (if (eq (window-buffer w) buffer)
+              (unless (window--delete w t t)
+                (set-window-dedicated-p w nil)
+                (switch-to-prev-buffer w 'kill))))))))
+
+(defun dss/blank-other-frame-windows ()
+  (interactive)
+  (let ((buffer (get-buffer-create "*blank*")))
+    (save-window-excursion
+      (dolist (f (frame-list))
+        (dolist (w (window-list f))
+          (unless (window--delete w t t)
+            (set-window-dedicated-p w nil)
+            (set-window-buffer w buffer)))))))
+
+(require 'workgroups)
+(defun dss/wg-name (&optional frame)
+  (with-selected-frame (or frame (selected-frame))
+    (cdr (assoc 'name (wg-current-workgroup t)))))
+
+(let ((progress-reporter
+       (make-progress-reporter "Collecting mana for Emacs..."
+                               0  500)))
+  (dotimes (k 500)
+    (sit-for 0.01)
+    (progress-reporter-update progress-reporter k))
+  (progress-reporter-done progress-reporter))
 
 (defun dss/frame-by-name (name)
-  (car (delq nil
-             (mapcar (lambda (fr) (if (string= (frame-parameter fr 'name) name) fr))
-                     (frame-list)))))
+  (dolist (fr (frame-list))
+    (if (string= (frame-parameter fr 'name) name)
+        (return fr))))
+
+;; (with-selected-frame (dss/frame-by-name "20")
+;;   (dss/wg-name)
+;;   ;; (wg-switch-to-index 0)
+;;   )
+
+
+(defun dss/window-numbering-get-number (window frame)
+  (gethash window
+           (cdr (gethash frame window-numbering-table))))
+
+(defun dss/window-sorted-frames ()
+  (sort (frame-list) (lambda (a b)
+                       (string-lessp
+                        (frame-parameter a 'name)
+                        (frame-parameter b 'name)))))
+(defun dss/window-sorted-windows (frame)
+  (sort (window-list f)
+        (lambda (a b)
+          (< (win-num a f) (win-num b f)))))
+
+(defun dss/{} (&rest pairs)
+  "http://mikael.jansson.be/log/hash-tables-and-a-wee-bit-of-sugar-in-common-lisp"
+  (let ((h (make-hash-table :test 'equal)))
+    (loop for (key value) on pairs by #'cdr do (setf (gethash key h) value))
+    h))
+
+(defun dss/window-list-data ()
+  (let ((cur-win (selected-window)))
+    (flet ((win-num (w f) (dss/window-numbering-get-number w f)))
+      (loop for f in (dss/window-sorted-frames)
+            collect
+            (list
+             (frame-parameter f 'name)
+             (loop for w in (dss/window-sorted-windows f)
+                   collect (dss/{}
+                            :frame f
+                            :frame-name (frame-parameter f 'name)
+                            :window w
+                            :workgroup (dss/wg-name f)
+                            :win-num (win-num w f)
+                            :win-name (buffer-name (window-buffer w))
+                            :selected (eq w (frame-selected-window f))
+                            :current-window (eq w cur-win)
+                            :point (window-point w))))))))
+
+(defun dss/tmp-test ()
+  (interactive)
+  (destructuring-bind (&key a &key b) ({} :a 1 :b 2)
+    (message "%s-%s" a b)))
+
+(defun dss/-window-list ()
+  (let (frame-start)
+    (flet ((red (s) (propertize s 'face '(:foreground "red")))
+           (yellow (s) (propertize s 'face '(:foreground "yellow")))
+           (grey (s) (propertize s 'face '(:foreground "#999999")))
+           (current (s) (propertize
+                         s 'face
+                         '(:background "#222222" :foreground "yellow")))
+           (wgroup (s) (propertize s 'face '(:foreground "#110000")))
+           (n-to-s (n) (number-to-string n)))
+      (loop for (fname wlist) in (dss/window-list-data)
+            do
+            (setq frame-start (point))
+            (insert (format "%s\n" (red fname)))
+            (dolist (wdat wlist)
+              (let ((name (gethash :win-name wdat))
+                    (w-sel (gethash :selected wdat))
+                    (f (gethash :frame wdat))
+                    (win-num (gethash :win-num wdat)))
+                (insert (format "  %s  %s %s\n"
+                                (grey (if (> win-num 1)
+                                          (n-to-s win-num)
+                                        " "))
+                                (cond
+                                 ((gethash :current-window wdat)
+                                  (current name))
+                                 ((string-equal "*blank*" name) (grey "."))
+                                 (w-sel (yellow name))
+                                 (t (grey name)))
+                                (wgroup (or (gethash :workgroup wdat) ""))
+                                ))
+                ;; (put-text-property frame-start (point) 'dss-window-data wdat)
+                )
+              (put-text-property frame-start (point) 'frame-name fname))))))
+
+(defun dss/window-list-enter ()
+  (interactive)
+  (dss/tmp-screen-switch
+   (string-to-int (get-text-property (point) 'frame-name)))
+  (quit-window))
 
 (defun dss/window-list ()
   (interactive)
-  (mapc #'(lambda (f)
-           (insert (format "%S\n" f))
-           (let ((selectedw (frame-selected-window f)))
-             (mapc '(lambda (w)
-                      (if (eq w selectedw)
-                          (insert "*"))
-                      (insert (format "  %S" w))
-                      (insert (format "  %s" (buffer-name (window-buffer w))))
-                      (insert (format ":%S\n" (window-point w))))
-                   (window-list f))))
-        (frame-list)))
+  (save-window-excursion
+    (with-output-to-temp-buffer "*window-list*"
+      (with-current-buffer "*window-list*"
+        (dss/-window-list)
+        (local-set-key (kbd "RET") 'dss/window-list-enter))))
+  (pop-to-buffer "*window-list*"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; workgroups
+
+(setq wg-prefix-key (kbd "C-c w"))
+(require 'workgroups)
+(setq wg-morph-on nil
+      wg-morph-hsteps 3
+      wg-morph-terminal-hsteps 2
+      wg-switch-on-load nil)
+(workgroups-mode 1)
+(wg-load (concat dss-ephemeral-dir "workgroups"))
 
 ;;; get-buffer-window-list
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
