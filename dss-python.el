@@ -195,7 +195,7 @@ This is python-comment-line-p from Dave Love's python.el"
         (dss/load-lineker-mode)
         (flymake-mode t)
         (linum-mode t)
-        (dss/ropemacs-init)
+        ;; (dss/ropemacs-init)
         ;; (ropemacs-mode t)
         (dss/highlight-watchwords)
         (dss/load-rope-completion)))
