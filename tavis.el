@@ -544,3 +544,33 @@ Jump to the correct buffer, increace the PROPERTY, jump back."
   (let ((buf (buffer-name (current-buffer))))
     (org-src-in-org-buffer (save-buffer))
     (switch-to-buffer buf)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; advise a few functions
+(defun dss/org-insert-item-hook ()
+  (interactive)
+  (if (and (org-in-item-p)
+           (save-excursion
+             (org-previous-item)
+             (back-to-indentation)
+             (looking-at-p "- *\\[")))
+      (insert "[ ] ")))
+
+(defadvice org-insert-item (after dss/-advice-org-insert-item activate)
+  (dss/org-insert-item-hook))
+
+(defvar dss-org-refile-source-buffer)
+(defadvice org-refile (before dss/-advice-org-refile activate)
+  (setq dss-org-refile-source-buffer (current-buffer)))
+
+(defadvice org-add-log-setup (around dss/-advice-org-add-log-setup activate)
+  ;; (&optional purpose state prev-state findpos how extra)
+  (if (equal (list (ad-get-arg 0) (ad-get-arg 1) (ad-get-arg 2))
+             (list 'refile nil nil))
+      (progn
+        (ad-set-arg 1 (file-name-nondirectory
+                       (buffer-file-name dss-org-refile-source-buffer)))
+        (ad-set-arg 2 (file-name-nondirectory
+                       (buffer-file-name (current-buffer))))
+        ad-do-it)
+    ad-do-it))
