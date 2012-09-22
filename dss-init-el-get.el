@@ -157,6 +157,9 @@
         (:name moz :type git :url "http://github.com/bard/mozrepl.git"
                :load "chrome/content/moz.el")
         (:name rainbow-delimiters :type git :url "https://github.com/jlr/rainbow-delimiters.git")
+        (:name rainbow-mode
+               :type git
+               :url "https://github.com/emacsmirror/rainbow-mode.git")
         (:name lineker :type http
                :url "http://www.helsinki.fi/~sjpaavol/programs/lineker.el")
         (:name js2-mode :type git :url "https://github.com/mooz/js2-mode")
@@ -214,7 +217,7 @@
         ;;hlinum
         diminish
         color-theme
-                                        ;rainbow-mode
+        rainbow-mode
         isearch+
         ;;linkd
         ace-jump-mode
