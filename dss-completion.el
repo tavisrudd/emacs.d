@@ -128,8 +128,9 @@ advice like this:
 
 (require 'auto-complete-config)
 (add-to-list 'ac-dictionary-directories (concat dss-dotfiles-dir "ac-dict"))
-(setq ac-delay 0.1)
-(setq ac-auto-show-menu 0.2)
+(ac-config-default)
+(setq ac-delay 0.2)
+(setq ac-auto-show-menu 0.3)
 (setq ac-menu-height 20)
 (setq ac-use-comphist nil)
 (setq ac-candidate-limit 25)
@@ -142,8 +143,6 @@ advice like this:
 (defun dss/ac-show-help ()
   (interactive)
   (setq ac-use-quick-help t))
-
-(ac-config-default)
 
 (require 'dss-codenav-helpers)
 
